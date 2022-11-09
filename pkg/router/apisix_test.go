@@ -21,6 +21,11 @@ import (
 	"fmt"
 	"testing"
 
+	a6v2 "github.com/fluxcd/flagger/pkg/apis/apisix/v2"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"k8s.io/apimachinery/pkg/util/intstr"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
@@ -28,6 +33,81 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestDiff(t *testing.T) {
+	ar := &a6v2.ApisixRoute{
+		TypeMeta: metav1.TypeMeta{APIVersion: a6v2.SchemeGroupVersion.String()},
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "default",
+			Name:      "podinfo",
+		},
+		Spec: a6v2.ApisixRouteSpec{HTTP: []a6v2.ApisixRouteHTTP{
+			{
+				Name: "method",
+				Match: a6v2.ApisixRouteHTTPMatch{
+					Hosts:   []string{"foobar.com"},
+					Methods: []string{"GET"},
+					Paths:   []string{"/*"},
+				},
+				Plugins: []a6v2.ApisixRoutePlugin{
+					{
+						Name:   "prometheus",
+						Enable: true,
+						Config: a6v2.ApisixRoutePluginConfig{
+							"disable":     "false",
+							"prefer_name": "true",
+						},
+					},
+				},
+				Backends: []a6v2.ApisixRouteHTTPBackend{
+					{ServiceName: "podinfo",
+						ServicePort: intstr.IntOrString{
+							Type:   intstr.Int,
+							IntVal: 80,
+						}},
+				},
+			},
+		},
+		},
+	}
+	br := &a6v2.ApisixRoute{
+		TypeMeta: metav1.TypeMeta{APIVersion: a6v2.SchemeGroupVersion.String()},
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "default",
+			Name:      "podinfo",
+		},
+		Spec: a6v2.ApisixRouteSpec{HTTP: []a6v2.ApisixRouteHTTP{
+			{
+				Name: "method",
+				Match: a6v2.ApisixRouteHTTPMatch{
+					Hosts:   []string{"foobar.com"},
+					Methods: []string{"GET"},
+					Paths:   []string{"/*"},
+				},
+				Plugins: []a6v2.ApisixRoutePlugin{
+					{
+						Name:   "prometheus",
+						Enable: true,
+						Config: a6v2.ApisixRoutePluginConfig{
+							"disable":     "false",
+							"prefer_name": "true",
+						},
+					},
+				},
+				Backends: []a6v2.ApisixRouteHTTPBackend{
+					{ServiceName: "podinfo",
+						ServicePort: intstr.IntOrString{
+							Type:   intstr.Int,
+							IntVal: 80,
+						}},
+				},
+			},
+		},
+		},
+	}
+
+	assert.Equal(t, "", cmp.Diff(ar.Spec.HTTP[0], br.Spec.HTTP[0], cmpopts.IgnoreFields(a6v2.ApisixRouteHTTP{}, "Name")))
+}
 
 func TestApisixRouter_Reconcile(t *testing.T) {
 	mocks := newFixture(nil)
