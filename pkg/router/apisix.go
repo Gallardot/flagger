@@ -115,11 +115,10 @@ func (ar *ApisixRouter) Reconcile(canary *flaggerv1.Canary) error {
 		return fmt.Errorf("apisix route %s.%s query error: %w", canaryApisixRouteName, canary.Namespace, err)
 	}
 
-	/* TODO
 	if diff := cmp.Diff(
-		apisixRouteClone.Spec.HTTP,
-		canaryApisixRoute.Spec.HTTP,
-		cmpopts.IgnoreFields(apisixv2.ApisixRouteHTTPBackend{}, "weight")); diff != "" {
+		apisixRouteClone.Spec,
+		canaryApisixRoute.Spec,
+		cmpopts.IgnoreFields(apisixv2.ApisixRouteSpec{}, "weight")); diff != "" {
 		iClone := canaryApisixRoute.DeepCopy()
 		iClone.Spec = apisixRouteClone.Spec
 
@@ -130,7 +129,6 @@ func (ar *ApisixRouter) Reconcile(canary *flaggerv1.Canary) error {
 		ar.logger.With("canary", fmt.Sprintf("%s.%s", canary.Name, canary.Namespace)).
 			Infof("Apisix route %s updated", canaryApisixRouteName)
 	}
-	*/
 
 	return nil
 }
