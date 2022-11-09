@@ -20,6 +20,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+
 	apisixv2 "github.com/fluxcd/flagger/pkg/apis/apisix/v2"
 	flaggerv1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
 	clientset "github.com/fluxcd/flagger/pkg/client/clientset/versioned"
@@ -77,7 +80,7 @@ func (ar *ApisixRouter) Reconcile(canary *flaggerv1.Canary) error {
 
 	apisixRouteClone.Spec.HTTP[0] = httpBackend
 	canaryApisixRouteName := fmt.Sprintf("%s-canary", canary.Spec.RouteRef.Name)
-	_, err = ar.apisixClient.ApisixV2().ApisixRoutes(canary.Namespace).Get(context.TODO(), canaryApisixRouteName, metav1.GetOptions{})
+	canaryApisixRoute, err := ar.apisixClient.ApisixV2().ApisixRoutes(canary.Namespace).Get(context.TODO(), canaryApisixRouteName, metav1.GetOptions{})
 
 	if errors.IsNotFound(err) {
 		route := &apisixv2.ApisixRoute{
@@ -112,7 +115,20 @@ func (ar *ApisixRouter) Reconcile(canary *flaggerv1.Canary) error {
 		return fmt.Errorf("apisix route %s.%s query error: %w", canaryApisixRouteName, canary.Namespace, err)
 	}
 
-	//TODO diff
+	if diff := cmp.Diff(
+		apisixRouteClone.Spec.HTTP,
+		canaryApisixRoute.Spec.HTTP,
+		cmpopts.IgnoreFields(apisixv2.ApisixRouteHTTPBackend{}, "weight")); diff != "" {
+		iClone := canaryApisixRoute.DeepCopy()
+		iClone.Spec = apisixRouteClone.Spec
+
+		_, err := ar.apisixClient.ApisixV2().ApisixRoutes(canary.Namespace).Update(context.TODO(), iClone, metav1.UpdateOptions{})
+		if err != nil {
+			return fmt.Errorf("apisix route %s.%s update error: %w", canaryApisixRouteName, iClone.Namespace, err)
+		}
+		ar.logger.With("canary", fmt.Sprintf("%s.%s", canary.Name, canary.Namespace)).
+			Infof("Apisix route %s updated", canaryApisixRouteName)
+	}
 
 	return nil
 }
