@@ -320,7 +320,7 @@ func toMetricModel(r *flaggerv1.Canary, interval string) flaggerv1.MetricTemplat
 		ingress = r.Spec.IngressRef.Name
 	}
 	route := r.Spec.TargetRef.Name
-	if r.Spec.RouteRef != nil{
+	if r.Spec.RouteRef != nil {
 		route = r.Spec.RouteRef.Name
 	}
 	return flaggerv1.MetricTemplateModel{
@@ -329,7 +329,7 @@ func toMetricModel(r *flaggerv1.Canary, interval string) flaggerv1.MetricTemplat
 		Target:    r.Spec.TargetRef.Name,
 		Service:   service,
 		Ingress:   ingress,
-		Route: route,
+		Route:     route,
 		Interval:  interval,
 	}
 }

@@ -87,7 +87,7 @@ type MetricTemplateModel struct {
 	Target    string `json:"target"`
 	Service   string `json:"service"`
 	Ingress   string `json:"ingress"`
-	Route string `json:"route"`
+	Route     string `json:"route"`
 	Interval  string `json:"interval"`
 }
 
@@ -99,7 +99,7 @@ func (mtm *MetricTemplateModel) TemplateFunctions() template.FuncMap {
 		"target":    func() string { return mtm.Target },
 		"service":   func() string { return mtm.Service },
 		"ingress":   func() string { return mtm.Ingress },
-		"route":   func() string { return mtm.Route },
+		"route":     func() string { return mtm.Route },
 		"interval":  func() string { return mtm.Interval },
 	}
 }
