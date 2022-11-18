@@ -29,7 +29,7 @@ var apisixQueries = map[string]string{
 	sum(
 		rate(
 			apisix_http_status{
-				route=~"{{ namespace }}_{{ target }}-{{ target }}-canary_.+",
+				route=~"{{ namespace }}_{{ route }}-{{ target }}-canary_.+",
 				code!~"5.."
 			}[{{ interval }}]
 		)
@@ -38,7 +38,7 @@ var apisixQueries = map[string]string{
 	sum(
 		rate(
 			apisix_http_status{
-				route=~"{{ namespace }}_{{ target }}-{{ target }}-canary_.+"
+				route=~"{{ namespace }}_{{ route }}-{{ target }}-canary_.+"
 			}[{{ interval }}]
 		)
 	) * 100`,
@@ -49,7 +49,7 @@ var apisixQueries = map[string]string{
 			rate(
 				apisix_http_latency_bucket{
 					type=~"request",
-					route=~"{{ namespace }}_{{ target }}-{{ target }}-canary_.+"
+					route=~"{{ namespace }}_{{ route }}-{{ target }}-canary_.+"
 				}[{{ interval }}]
 			)
 		) by (le)

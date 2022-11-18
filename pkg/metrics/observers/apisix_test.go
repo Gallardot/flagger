@@ -56,6 +56,7 @@ func TestApisixObserver_GetRequestSuccessRate(t *testing.T) {
 			Namespace: "default",
 			Target:    "podinfo",
 			Service:   "podinfo",
+			Route: "podinfo",
 			Interval:  "1m",
 		})
 		require.NoError(t, err)
@@ -109,6 +110,7 @@ func TestApisixObserver_GetRequestDuration(t *testing.T) {
 		Namespace: "default",
 		Target:    "podinfo",
 		Service:   "podinfo",
+		Route: "podinfo",
 		Interval:  "1m",
 	})
 	require.NoError(t, err)
