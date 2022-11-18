@@ -49,24 +49,46 @@ func (ar *ApisixRouter) Reconcile(canary *flaggerv1.Canary) error {
 
 	apisixRoute, err := ar.apisixClient.ApisixV2().ApisixRoutes(canary.Namespace).Get(context.TODO(), canary.Spec.RouteRef.Name, metav1.GetOptions{})
 	if err != nil {
-		return fmt.Errorf("apisix route %s.%s get query error: %w", canary.Spec.RouteRef.Name, canary.Namespace, err)
+		return fmt.Errorf("apisix route %s.%s get query error: %w",
+			canary.Spec.RouteRef.Name, canary.Namespace, err)
 	}
 
 	apisixRouteClone := apisixRoute.DeepCopy()
-	if len(apisixRouteClone.Spec.HTTP) != 1 && len(apisixRouteClone.Spec.HTTP[0].Backends) != 1 {
-		return fmt.Errorf("apisix route %s.%s only one http backend is supported", canary.Spec.RouteRef.Name, canary.Namespace)
+	if len(apisixRouteClone.Spec.HTTP) == 0 {
+		return fmt.Errorf("apisix route %s.%s's spec.http is empty",
+			canary.Spec.RouteRef.Name, canary.Namespace)
 	}
 
-	httpBackend := apisixRouteClone.Spec.HTTP[0]
-	httpBackend.Priority = maxPriority
+	apexName, primaryName, canaryName := canary.GetServiceNames()
+	var targetHttpRoute *a6v2.ApisixRouteHTTP
+	var targetIndex int
+	for index, item := range apisixRouteClone.Spec.HTTP {
+		for _, backend := range item.Backends {
+			if backend.ServiceName == apexName {
+				targetHttpRoute = &item
+				targetIndex = index
+				goto found
+			}
+		}
+	}
 
-	_, primaryName, canaryName := canary.GetServiceNames()
+found:
+	if targetHttpRoute == nil {
+		return fmt.Errorf("can not find %s backend on apisix route %s.%s",
+			primaryName, canary.Spec.RouteRef.Name, canary.Namespace)
+	}
+	if len(targetHttpRoute.Backends) != 1 {
+		return fmt.Errorf("apisix route %s.%s's http route %s only one http backend is supported",
+			canary.Spec.RouteRef.Name, canary.Namespace, targetHttpRoute.Name)
+	}
 
-	primaryBackend := httpBackend.Backends[0]
+	targetHttpRoute.Priority = maxPriority
+
+	primaryBackend := targetHttpRoute.Backends[0]
 	primaryBackend.ServiceName = primaryName
 	primaryWeight := 100
 	primaryBackend.Weight = &primaryWeight
-	httpBackend.Backends[0] = primaryBackend
+	targetHttpRoute.Backends[0] = primaryBackend
 
 	canaryWeight := 0
 	canaryBackend := a6v2.ApisixRouteHTTPBackend{
@@ -76,10 +98,11 @@ func (ar *ApisixRouter) Reconcile(canary *flaggerv1.Canary) error {
 		Weight:             &canaryWeight,
 		Subset:             primaryBackend.Subset,
 	}
-	httpBackend.Backends = append(httpBackend.Backends, canaryBackend)
 
-	apisixRouteClone.Spec.HTTP[0] = httpBackend
-	canaryApisixRouteName := fmt.Sprintf("%s-canary", canary.Spec.RouteRef.Name)
+	targetHttpRoute.Backends = append(targetHttpRoute.Backends, canaryBackend)
+	apisixRouteClone.Spec.HTTP[targetIndex] = *targetHttpRoute
+
+	canaryApisixRouteName := fmt.Sprintf("%s-%s-canary", canary.Spec.RouteRef.Name, apexName)
 	canaryApisixRoute, err := ar.apisixClient.ApisixV2().ApisixRoutes(canary.Namespace).Get(context.TODO(), canaryApisixRouteName, metav1.GetOptions{})
 
 	if errors.IsNotFound(err) {
@@ -116,7 +139,7 @@ func (ar *ApisixRouter) Reconcile(canary *flaggerv1.Canary) error {
 	}
 
 	if diff := cmp.Diff(canaryApisixRoute.Spec, apisixRouteClone.Spec,
-		cmpopts.IgnoreFields(a6v2.ApisixRouteHTTPBackend{}, "Weight")); diff != ""{
+		cmpopts.IgnoreFields(a6v2.ApisixRouteHTTPBackend{}, "Weight")); diff != "" {
 		iClone := canaryApisixRoute.DeepCopy()
 		iClone.Spec = apisixRouteClone.Spec
 
@@ -138,13 +161,13 @@ func (ar *ApisixRouter) GetRoutes(canary *flaggerv1.Canary) (
 	mirrored bool,
 	err error,
 ) {
-	canaryApisixRouteName := fmt.Sprintf("%s-canary", canary.Spec.RouteRef.Name)
+	apexName, primaryName, _ := canary.GetServiceNames()
+	canaryApisixRouteName := fmt.Sprintf("%s-%s-canary", canary.Spec.RouteRef.Name, apexName)
 	apisixRoute, err := ar.apisixClient.ApisixV2().ApisixRoutes(canary.Namespace).Get(context.TODO(), canaryApisixRouteName, metav1.GetOptions{})
 	if err != nil {
 		err = fmt.Errorf("apisix route %s.%s query error: %w", canaryApisixRouteName, canary.Namespace, err)
 		return
 	}
-	_, primaryName, _ := canary.GetServiceNames()
 
 	for _, backend := range apisixRoute.Spec.HTTP[0].Backends {
 		if backend.ServiceName == primaryName {
@@ -170,7 +193,7 @@ func (ar *ApisixRouter) SetRoutes(
 		return fmt.Errorf("RoutingRule %s.%s update failed: no valid weights", apexName, canary.Namespace)
 	}
 
-	canaryApisixRouteName := fmt.Sprintf("%s-canary", canary.Spec.RouteRef.Name)
+	canaryApisixRouteName := fmt.Sprintf("%s-%s-canary", canary.Spec.RouteRef.Name, apexName)
 	apisixRoute, err := ar.apisixClient.ApisixV2().ApisixRoutes(canary.Namespace).Get(context.TODO(), canaryApisixRouteName, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("apisix route %s.%s query error: %w", canaryApisixRouteName, canary.Namespace, err)
