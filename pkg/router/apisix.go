@@ -115,25 +115,8 @@ func (ar *ApisixRouter) Reconcile(canary *flaggerv1.Canary) error {
 		return fmt.Errorf("apisix route %s.%s query error: %w", canaryApisixRouteName, canary.Namespace, err)
 	}
 
-	diffHttpSpec := "placeholder"
-	diffBackend := "placeholder"
-	diffCanaryBackend := "placeholder"
-	if len(canaryApisixRoute.Spec.HTTP) == 1 &&
-		len(canaryApisixRoute.Spec.HTTP[0].Backends) == 2 {
-		diffHttpSpec = cmp.Diff(apisixRouteClone.Spec.HTTP[0],
-			canaryApisixRoute.Spec.HTTP[0],
-			cmpopts.IgnoreFields(a6v2.ApisixRouteHTTP{}, "Backends"))
-
-		diffBackend = cmp.Diff(apisixRouteClone.Spec.HTTP[0].Backends[0],
-			canaryApisixRoute.Spec.HTTP[0].Backends[0],
-			cmpopts.IgnoreFields(a6v2.ApisixRouteHTTPBackend{}, "Weight"))
-
-		diffCanaryBackend = cmp.Diff(apisixRouteClone.Spec.HTTP[0].Backends[1],
-			canaryApisixRoute.Spec.HTTP[0].Backends[1],
-			cmpopts.IgnoreFields(a6v2.ApisixRouteHTTPBackend{}, "Weight"))
-	}
-
-	if diffHttpSpec != "" || diffBackend != "" || diffCanaryBackend != "" {
+	if diff := cmp.Diff(canaryApisixRoute.Spec, apisixRouteClone.Spec,
+		cmpopts.IgnoreFields(a6v2.ApisixRouteHTTPBackend{}, "Weight")); diff != ""{
 		iClone := canaryApisixRoute.DeepCopy()
 		iClone.Spec = apisixRouteClone.Spec
 
