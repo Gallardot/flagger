@@ -49,13 +49,13 @@ func (ar *ApisixRouter) Reconcile(canary *flaggerv1.Canary) error {
 
 	apisixRoute, err := ar.apisixClient.ApisixV2().ApisixRoutes(canary.Namespace).Get(context.TODO(), canary.Spec.RouteRef.Name, metav1.GetOptions{})
 	if err != nil {
-		return fmt.Errorf("apisix route %s.%s get query error: %w",
+		return fmt.Errorf("APISIX route %s.%s get query error: %w",
 			canary.Spec.RouteRef.Name, canary.Namespace, err)
 	}
 
 	apisixRouteClone := apisixRoute.DeepCopy()
 	if len(apisixRouteClone.Spec.HTTP) == 0 {
-		return fmt.Errorf("apisix route %s.%s's spec.http is empty",
+		return fmt.Errorf("APISIX route %s.%s's spec.http is empty",
 			canary.Spec.RouteRef.Name, canary.Namespace)
 	}
 
@@ -74,11 +74,11 @@ func (ar *ApisixRouter) Reconcile(canary *flaggerv1.Canary) error {
 
 found:
 	if targetHttpRoute == nil {
-		return fmt.Errorf("can not find %s backend on apisix route %s.%s",
+		return fmt.Errorf("Can not find %s backend on apisix route %s.%s ",
 			primaryName, canary.Spec.RouteRef.Name, canary.Namespace)
 	}
 	if len(targetHttpRoute.Backends) != 1 {
-		return fmt.Errorf("apisix route %s.%s's http route %s only one http backend is supported",
+		return fmt.Errorf("APISIX route %s.%s's http route %s only one http backend is supported",
 			canary.Spec.RouteRef.Name, canary.Namespace, targetHttpRoute.Name)
 	}
 
@@ -128,14 +128,14 @@ found:
 
 		_, err := ar.apisixClient.ApisixV2().ApisixRoutes(canary.Namespace).Create(context.TODO(), route, metav1.CreateOptions{})
 		if err != nil {
-			return fmt.Errorf("apisix route %s.%s create error: %w", route.Name, route.Namespace, err)
+			return fmt.Errorf("APISIX route %s.%s create error: %w", route.Name, route.Namespace, err)
 		}
 
 		ar.logger.With("canary", fmt.Sprintf("%s.%s", canary.Name, canary.Namespace)).
-			Infof("apisix route %s.%s created", route.GetName(), canary.Namespace)
+			Infof("APISIX route %s.%s created", route.GetName(), canary.Namespace)
 		return nil
 	} else if err != nil {
-		return fmt.Errorf("apisix route %s.%s query error: %w", canaryApisixRouteName, canary.Namespace, err)
+		return fmt.Errorf("APISIX route %s.%s query error: %w", canaryApisixRouteName, canary.Namespace, err)
 	}
 
 	if diff := cmp.Diff(canaryApisixRoute.Spec, apisixRouteClone.Spec,
@@ -145,7 +145,7 @@ found:
 
 		_, err := ar.apisixClient.ApisixV2().ApisixRoutes(canary.Namespace).Update(context.TODO(), iClone, metav1.UpdateOptions{})
 		if err != nil {
-			return fmt.Errorf("apisix route %s.%s update error: %w", canaryApisixRouteName, iClone.Namespace, err)
+			return fmt.Errorf("APISIX route %s.%s update error: %w", canaryApisixRouteName, iClone.Namespace, err)
 		}
 		ar.logger.With("canary", fmt.Sprintf("%s.%s", canary.Name, canary.Namespace)).
 			Infof("Apisix route %s updated", canaryApisixRouteName)

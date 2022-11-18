@@ -31,7 +31,7 @@ import (
 
 func TestApisixObserver_GetRequestSuccessRate(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
-		expected := ` sum( rate( apisix_http_status{ route=~"default_podinfo-canary_.+", code!~"5.." }[1m] ) ) / sum( rate( apisix_http_status{ route=~"default_podinfo-canary_.+" }[1m] ) ) * 100`
+		expected := ` sum( rate( apisix_http_status{ route=~"default_podinfo-podinfo-canary_.+", code!~"5.." }[1m] ) ) / sum( rate( apisix_http_status{ route=~"default_podinfo-podinfo-canary_.+" }[1m] ) ) * 100`
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			promql := r.URL.Query()["query"][0]
@@ -84,7 +84,7 @@ func TestApisixObserver_GetRequestSuccessRate(t *testing.T) {
 }
 
 func TestApisixObserver_GetRequestDuration(t *testing.T) {
-	expected := ` histogram_quantile( 0.99, sum( rate( apisix_http_latency_bucket{ type=~"request", route=~"default_podinfo-canary_.+" }[1m] ) ) by (le) )`
+	expected := ` histogram_quantile( 0.99, sum( rate( apisix_http_latency_bucket{ type=~"request", route=~"default_podinfo-podinfo-canary_.+" }[1m] ) ) by (le) )`
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		promql := r.URL.Query()["query"][0]
