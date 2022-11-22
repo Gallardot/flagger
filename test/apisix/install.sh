@@ -15,11 +15,13 @@ helm repo add apisix https://charts.apiseven.com
 
 helm upgrade -i apisix apisix/apisix --version=${APISIX_CHART_VERSION} \
 --namespace apisix \
---set serviceMonitor.enabled=true \
 --set apisix.podAnnotations."prometheus\.io/scrape"=true \
 --set apisix.podAnnotations."prometheus\.io/port"=9091 \
 --set apisix.podAnnotations."prometheus\.io/path"=/apisix/prometheus/metrics \
---set dashboard.enabled=true \
+--set pluginAttrs.prometheus.export_addr.ip=0.0.0.0 \
+--set pluginAttrs.prometheus.export_addr.port=9091 \
+--set pluginAttrs.prometheus.export_uri=/apisix/prometheus/metrics \
+--set pluginAttrs.prometheus.metric_prefix=apisix_ \
 --set ingress-controller.enabled=true \
 --set ingress-controller.config.apisix.serviceNamespace=apisix
 
