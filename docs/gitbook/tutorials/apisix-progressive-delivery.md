@@ -6,7 +6,7 @@ This guide shows you how to use the [Apache APISIX](https://apisix.apache.org/) 
 
 ## Prerequisites
 
-Flagger requires a Kubernetes cluster **v1.16** or newer and Apache APISIX **v2.15** or newer and Apache APISIX Ingress Controller **v1.5.0** or newer.
+Flagger requires a Kubernetes cluster **v1.19** or newer and Apache APISIX **v2.15** or newer and Apache APISIX Ingress Controller **v1.5.0** or newer.
 
 Install Apache APISIX and Apache APISIX Ingress Controller with Helm v3:
 
@@ -40,7 +40,7 @@ helm upgrade -i flagger flagger/flagger \
 
 ## Bootstrap
 
-Flagger takes a Kubernetes deployment and optionally a horizontal pod autoscaler \(HPA\), then creates a series of objects \(Kubernetes deployments, ClusterIP services and ApisixRoute\). These objects expose the application outside the cluster and drive the canary analysis and promotion.
+Flagger takes a Kubernetes deployment and optionally a horizontal pod autoscaler \(HPA\), then creates a series of objects \(Kubernetes deployments, ClusterIP services and an ApisixRoute\). These objects expose the application outside the cluster and drive the canary analysis and promotion.
 
 Create a test namespace:
 
@@ -61,7 +61,7 @@ helm upgrade -i flagger-loadtester flagger/loadtester \
 --namespace=test
 ```
 
-Create Apache APISIX ApisixRoute, Flagger will reference and generate the canary Apache APISIX ApisixRoute \(replace `app.example.com` with your own domain\):
+Create an Apache APISIX `ApisixRoute`, Flagger will reference and generate the canary Apache APISIX `ApisixRoute` \(replace `app.example.com` with your own domain\):
 
 ```yaml
 apiVersion: apisix.apache.org/v2
@@ -193,7 +193,7 @@ Trigger a canary deployment by updating the container image:
 
 ```bash
 kubectl -n test set image deployment/podinfo \
-podinfod=stefanprodan/podinfo:4.0.6
+podinfod=stefanprodan/podinfo:6.0.1
 ```
 
 Flagger detects that the deployment revision changed and starts a new rollout:
@@ -252,7 +252,7 @@ Trigger another canary deployment:
 
 ```bash
 kubectl -n test set image deployment/podinfo \
-podinfod=stefanprodan/podinfo:4.0.6
+podinfod=stefanprodan/podinfo:6.0.2
 ```
 
 Exec into the load tester pod with:
@@ -346,50 +346,6 @@ Edit the canary analysis and add the not found error rate check:
 
 The above configuration validates the canary by checking if the HTTP 404 req/sec percentage is below 5 percent of the total traffic. If the 404s rate reaches the 5% threshold, then the canary fails.
 
-Trigger a canary deployment by updating the container image:
 
-```bash
-kubectl -n test set image deployment/podinfo \
-podinfod=stefanprodan/podinfo:4.0.6
-```
-
-Exec into the load tester pod with:
-
-```bash
-kubectl -n test exec -it deploy/flagger-loadtester bash
-```
-
-Generate 404s:
-
-```bash
-watch curl -H \"host: app.example.com\" http://apisix-gateway.apisix/status/400
-```
-
-Watch Flagger logs:
-
-```text
-kubectl -n apisix logs deployment/flagger -f | jq .msg
-
-"New revision detected! Scaling up podinfo.test"
-"canary deployment podinfo.test not ready: waiting for rollout to finish: 0 of 1 (readyThreshold 100%) updated replicas are available"
-"Starting canary analysis for podinfo.test"
-"Advance podinfo.test canary weight 10"
-"Advance podinfo.test canary weight 20"
-"Halt podinfo.test advancement 404s percentage 92.89 > 5"
-"Halt podinfo.test advancement 404s percentage 95.46 > 5"
-"Halt podinfo.test advancement 404s percentage 96.09 > 5"
-"Halt podinfo.test advancement 404s percentage 96.40 > 5"
-"Halt podinfo.test advancement 404s percentage 97.21 > 5"
-"Halt podinfo.test advancement 404s percentage 97.68 > 5"
-"Halt podinfo.test advancement 404s percentage 97.20 > 5"
-"Halt podinfo.test advancement 404s percentage 97.09 > 5"
-"Halt podinfo.test advancement 404s percentage 97.09 > 5"
-"Halt podinfo.test advancement 404s percentage 97.09 > 5"
-"Rolling back podinfo.test failed checks threshold reached 10"
-"Canary failed! Scaling down podinfo.test"
-```
-
-If you have [alerting](../usage/alerting.md) configured, Flagger will send a notification with the reason why the canary failed.
-
-For an in-depth look at the analysis process read the [usage docs](../usage/how-it-works.md).
+The above procedures can be extended with more [custom metrics](../usage/metrics.md) checks, [webhooks](../usage/webhooks.md), [manual promotion](../usage/webhooks.md#manual-gating) approval and [Slack or MS Teams](../usage/alerting.md) notifications.
 
