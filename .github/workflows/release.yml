@@ -5,19 +5,22 @@ on:
       - 'v*'
 
 permissions:
-  contents: write # needed to write releases
-  id-token: write # needed for keyless signing
-  packages: write # needed for ghcr access
+  contents: read
 
 env:
   IMAGE: "ghcr.io/fluxcd/${{ github.event.repository.name }}"
 
 jobs:
-  build-push:
+  release-flagger:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed to write releases
+      id-token: write # needed for keyless signing
+      packages: write # needed for ghcr access
     steps:
-      - uses: actions/checkout@v2
-      - uses: sigstore/cosign-installer@main
+      - uses: actions/checkout@v3
+      - uses: fluxcd/flux2/action@main
+      - uses: sigstore/cosign-installer@v2.8.1
       - name: Prepare
         id: prep
         run: |
@@ -27,26 +30,26 @@ jobs:
           echo ::set-output name=BUILD_DATE::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
           echo ::set-output name=VERSION::${VERSION}
       - name: Setup QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       - name: Setup Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: fluxcdbot
           password: ${{ secrets.GHCR_TOKEN }}
       - name: Generate image meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: |
             ${{ env.IMAGE }}
           tags: |
             type=raw,value=${{ steps.prep.outputs.VERSION }}
       - name: Publish image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           push: true
           builder: ${{ steps.buildx.outputs.name }}
@@ -58,26 +61,39 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Sign image
+        env:
+          COSIGN_EXPERIMENTAL: 1
         run: |
-          echo -n "${{secrets.COSIGN_PASSWORD}}" | \
-          cosign sign -key ./.cosign/cosign.key -a git_sha=$GITHUB_SHA \
-          ${{ env.IMAGE }}:${{ steps.prep.outputs.VERSION }}
-      - name: Check images
-        run: |
-          docker buildx imagetools inspect ${{ env.IMAGE }}:${{ steps.prep.outputs.VERSION }}
-      - name: Verifiy image signature
-        run: |
-          cosign verify -key ./.cosign/cosign.pub \
-          ${{ env.IMAGE }}:${{ steps.prep.outputs.VERSION }}
+          cosign sign ${{ env.IMAGE }}:${{ steps.prep.outputs.VERSION }}
       - name: Publish Helm charts
-        uses: stefanprodan/helm-gh-pages@v1.3.0
+        uses: stefanprodan/helm-gh-pages@v1.6.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           charts_url: https://flagger.app
           linting: off
+      - uses: fluxcd/pkg/actions/helm@main
+        with:
+          version: 3.10.1
+      - name: Publish signed Helm chart to GHCR
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          helm package charts/flagger
+          helm push flagger-${{ steps.prep.outputs.VERSION }}.tgz oci://ghcr.io/fluxcd/charts
+          cosign sign ghcr.io/fluxcd/charts/flagger:${{ steps.prep.outputs.VERSION }}
+          rm flagger-${{ steps.prep.outputs.VERSION }}.tgz
+      - name: Publish signed manifests to GHCR
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          flux push artifact oci://ghcr.io/fluxcd/flagger-manifests:${{ steps.prep.outputs.VERSION }} \
+          --path="./kustomize" \
+          --source="$(git config --get remote.origin.url)" \
+          --revision="${{ steps.prep.outputs.VERSION }}/$(git rev-parse HEAD)"
+          cosign sign ghcr.io/fluxcd/flagger-manifests:${{ steps.prep.outputs.VERSION }}
       - uses: anchore/sbom-action/download-syft@v0
       - name: Create release and SBOM
-        uses: goreleaser/goreleaser-action@v2
+        uses: goreleaser/goreleaser-action@v3
         with:
           version: latest
           args: release --release-notes=notes.md --rm-dist --skip-validate

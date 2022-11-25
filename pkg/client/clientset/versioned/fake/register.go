@@ -24,6 +24,7 @@ import (
 	appmeshv1beta2 "github.com/fluxcd/flagger/pkg/apis/appmesh/v1beta2"
 	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
 	gatewayapiv1alpha2 "github.com/fluxcd/flagger/pkg/apis/gatewayapi/v1alpha2"
+	gatewayapiv1beta1 "github.com/fluxcd/flagger/pkg/apis/gatewayapi/v1beta1"
 	gatewayv1 "github.com/fluxcd/flagger/pkg/apis/gloo/gateway/v1"
 	gloov1 "github.com/fluxcd/flagger/pkg/apis/gloo/gloo/v1"
 	networkingv1alpha3 "github.com/fluxcd/flagger/pkg/apis/istio/v1alpha3"
@@ -51,6 +52,7 @@ var localSchemeBuilder = runtime.SchemeBuilder{
 	flaggerv1beta1.AddToScheme,
 	gatewayv1.AddToScheme,
 	gatewayapiv1alpha2.AddToScheme,
+	gatewayapiv1beta1.AddToScheme,
 	gloov1.AddToScheme,
 	networkingv1alpha3.AddToScheme,
 	kedav1alpha1.AddToScheme,
@@ -65,14 +67,14 @@ var localSchemeBuilder = runtime.SchemeBuilder{
 // AddToScheme adds all types of this clientset into the given scheme. This allows composition
 // of clientsets, like in:
 //
-//   import (
-//     "k8s.io/client-go/kubernetes"
-//     clientsetscheme "k8s.io/client-go/kubernetes/scheme"
-//     aggregatorclientsetscheme "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset/scheme"
-//   )
+//	import (
+//	  "k8s.io/client-go/kubernetes"
+//	  clientsetscheme "k8s.io/client-go/kubernetes/scheme"
+//	  aggregatorclientsetscheme "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset/scheme"
+//	)
 //
-//   kclientset, _ := kubernetes.NewForConfig(c)
-//   _ = aggregatorclientsetscheme.AddToScheme(clientsetscheme.Scheme)
+//	kclientset, _ := kubernetes.NewForConfig(c)
+//	_ = aggregatorclientsetscheme.AddToScheme(clientsetscheme.Scheme)
 //
 // After this, RawExtensions in Kubernetes types will serialize kube-aggregator types
 // correctly.

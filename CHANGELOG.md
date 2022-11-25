@@ -2,6 +2,131 @@
 
 All notable changes to this project are documented in this file.
 
+## 1.26.0
+
+**Release date:** 2022-11-23
+
+This release comes with support Kubernetes [Gateway API](https://gateway-api.sigs.k8s.io/) v1beta1.
+For more details see the [Gateway API Progressive Delivery tutorial](https://docs.flagger.app/tutorials/gatewayapi-progressive-delivery).
+
+Please note that starting with this version, the Gateway API v1alpha2 is considered deprecated
+and will be removed from Flagger after 6 months.
+
+#### Improvements:
+
+- Updated Gateway API from v1alpha2 to v1beta1
+  [#1319](https://github.com/fluxcd/flagger/pull/1319)
+- Updated Gateway API docs to v1beta1
+  [#1321](https://github.com/fluxcd/flagger/pull/1321)
+- Update dependencies
+  [#1322](https://github.com/fluxcd/flagger/pull/1322)
+
+#### Fixes:
+
+- docs: Add `linkerd install --crds` to Linkerd tutorial
+  [#1316](https://github.com/fluxcd/flagger/pull/1316)
+
+## 1.25.0
+
+**Release date:** 2022-11-16
+
+This release introduces a new deployment strategy combining Canary releases with session affinity
+for Istio.
+
+Furthermore, it contains a regression fix regarding metadata in alerts introduced in
+[#1275](https://github.com/fluxcd/flagger/pull/1275)
+
+#### Improvements:
+
+- Add support for session affinity during weighted routing with Istio
+  [#1280](https://github.com/fluxcd/flagger/pull/1280)
+
+#### Fixes:
+
+- Fix cluster name inclusion in alerts metadata
+  [#1306](https://github.com/fluxcd/flagger/pull/1306)
+- fix(faq): Update FAQ about zero downtime with correct values
+  [#1302](https://github.com/fluxcd/flagger/pull/1302)
+
+## 1.24.1
+
+**Release date:** 2022-10-26
+
+This release comes with a fix to Gloo routing when a custom service name id used.
+
+In addition, the Gloo ingress end-to-end testing was updated to Gloo Helm chart v1.12.31.
+
+#### Fixes:
+
+- fix(gloo): Use correct route table name in case service name was overwritten
+  [#1300](https://github.com/fluxcd/flagger/pull/1300)
+
+## 1.24.0
+
+**Release date:** 2022-10-23
+
+Starting with this version, the Flagger release artifacts are published to
+GitHub Container Registry, and they are signed with Cosign and GitHub ODIC.
+
+OCI artifacts:
+
+- `ghcr.io/fluxcd/flagger:<version>` multi-arch container images
+- `ghcr.io/fluxcd/flagger-manifest:<version>` Kubernetes manifests
+- `ghcr.io/fluxcd/charts/flagger:<version>` Helm charts
+
+To verify an OCI artifact with Cosign:
+
+```shell
+export COSIGN_EXPERIMENTAL=1
+cosign verify ghcr.io/fluxcd/flagger:1.24.0
+cosign verify ghcr.io/fluxcd/flagger-manifests:1.24.0
+cosign verify ghcr.io/fluxcd/charts/flagger:1.24.0
+```
+
+To deploy Flagger from its OCI artifacts the GitOps way,
+please see the [Flux installation guide](docs/gitbook/install/flagger-install-with-flux.md).
+
+#### Improvements:
+
+- docs: Add guide on how to install Flagger with Flux OCI
+  [#1294](https://github.com/fluxcd/flagger/pull/1294)
+- ci: Publish signed Helm charts and manifests to GHCR
+  [#1293](https://github.com/fluxcd/flagger/pull/1293)
+- ci: Sign release and containers with Cosign and GitHub OIDC
+  [#1292](https://github.com/fluxcd/flagger/pull/1292)
+- ci: Adjust GitHub workflow permissions
+  [#1286](https://github.com/fluxcd/flagger/pull/1286)
+- docs: Add link to Flux governance document
+  [#1286](https://github.com/fluxcd/flagger/pull/1286)
+
+## 1.23.0
+
+**Release date:** 2022-10-20
+
+This release comes with support for Slack bot token authentication.
+
+#### Improvements:
+
+- alerts: Add support for Slack bot token authentication
+  [#1270](https://github.com/fluxcd/flagger/pull/1270)
+- loadtester: logCmdOutput to logger instead of stdout
+  [#1267](https://github.com/fluxcd/flagger/pull/1267)
+- helm: Add app.kubernetes.io/version label to chart
+  [#1264](https://github.com/fluxcd/flagger/pull/1264)
+- Update Go to 1.19
+  [#1264](https://github.com/fluxcd/flagger/pull/1264)
+- Update Kubernetes packages to v1.25.3
+  [#1283](https://github.com/fluxcd/flagger/pull/1283)
+- Bump Contour to v1.22 in e2e tests
+  [#1282](https://github.com/fluxcd/flagger/pull/1282)
+
+#### Fixes:
+
+- gatewayapi: Fix reconciliation of nil hostnames
+  [#1276](https://github.com/fluxcd/flagger/pull/1276)
+- alerts: Include cluster name in all alerts
+  [#1275](https://github.com/fluxcd/flagger/pull/1275)
+
 ## 1.22.2
 
 **Release date:** 2022-08-29

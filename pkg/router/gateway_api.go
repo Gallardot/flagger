@@ -23,6 +23,7 @@ import (
 
 	flaggerv1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
 	"github.com/fluxcd/flagger/pkg/apis/gatewayapi/v1alpha2"
+	"github.com/fluxcd/flagger/pkg/apis/gatewayapi/v1beta1"
 	"github.com/fluxcd/flagger/pkg/apis/istio/v1alpha3"
 	clientset "github.com/fluxcd/flagger/pkg/client/clientset/versioned"
 	"github.com/google/go-cmp/cmp"
@@ -66,7 +67,7 @@ func (gwr *GatewayAPIRouter) Reconcile(canary *flaggerv1.Canary) error {
 
 	hrNamespace := canary.Namespace
 
-	hostNames := []v1alpha2.Hostname{}
+	var hostNames []v1alpha2.Hostname
 	for _, host := range canary.Spec.Service.Hosts {
 		hostNames = append(hostNames, v1alpha2.Hostname(host))
 	}
@@ -85,7 +86,7 @@ func (gwr *GatewayAPIRouter) Reconcile(canary *flaggerv1.Canary) error {
 
 	httpRouteSpec := v1alpha2.HTTPRouteSpec{
 		CommonRouteSpec: v1alpha2.CommonRouteSpec{
-			ParentRefs: canary.Spec.Service.GatewayRefs,
+			ParentRefs: toV1alpha2ParentRefs(canary.Spec.Service.GatewayRefs),
 		},
 		Hostnames: hostNames,
 		Rules: []v1alpha2.HTTPRouteRule{
@@ -179,7 +180,7 @@ func (gwr *GatewayAPIRouter) Reconcile(canary *flaggerv1.Canary) error {
 				return fmt.Errorf("HTTPRoute %s.%s update error: %w while reconciling", hrClone.GetName(), hrNamespace, err)
 			}
 			gwr.logger.With("canary", fmt.Sprintf("%s.%s", canary.Name, canary.Namespace)).
-				Infof("HTTPProxy %s.%s updated", hrClone.GetName(), hrNamespace)
+				Infof("HTTPRoute %s.%s updated", hrClone.GetName(), hrNamespace)
 		}
 	}
 
@@ -249,7 +250,7 @@ func (gwr *GatewayAPIRouter) SetRoutes(
 	}
 	httpRouteSpec := v1alpha2.HTTPRouteSpec{
 		CommonRouteSpec: v1alpha2.CommonRouteSpec{
-			ParentRefs: canary.Spec.Service.GatewayRefs,
+			ParentRefs: toV1alpha2ParentRefs(canary.Spec.Service.GatewayRefs),
 		},
 		Hostnames: hostNames,
 		Rules: []v1alpha2.HTTPRouteRule{
@@ -404,4 +405,19 @@ func (gwr *GatewayAPIRouter) mergeMatchConditions(analysis, service []v1alpha2.H
 		}
 	}
 	return merged
+}
+
+func toV1alpha2ParentRefs(gatewayRefs []v1beta1.ParentReference) []v1alpha2.ParentReference {
+	parentRefs := make([]v1alpha2.ParentReference, 0)
+	for i := 0; i < len(gatewayRefs); i++ {
+		gatewayRef := gatewayRefs[i]
+		parentRefs = append(parentRefs, v1alpha2.ParentReference{
+			Group:       (*v1alpha2.Group)(gatewayRef.Group),
+			Kind:        (*v1alpha2.Kind)(gatewayRef.Kind),
+			Namespace:   (*v1alpha2.Namespace)(gatewayRef.Namespace),
+			Name:        (v1alpha2.ObjectName)(gatewayRef.Name),
+			SectionName: (*v1alpha2.SectionName)(gatewayRef.SectionName),
+		})
+	}
+	return parentRefs
 }

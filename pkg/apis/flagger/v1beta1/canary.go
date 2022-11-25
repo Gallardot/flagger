@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/fluxcd/flagger/pkg/apis/gatewayapi/v1alpha2"
+	"github.com/fluxcd/flagger/pkg/apis/gatewayapi/v1beta1"
 	istiov1alpha3 "github.com/fluxcd/flagger/pkg/apis/istio/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -152,7 +152,7 @@ type CanaryService struct {
 	// Gateways that the HTTPRoute needs to attach itself to.
 	// Must be specified while using the Gateway API as a provider.
 	// +optional
-	GatewayRefs []v1alpha2.ParentReference `json:"gatewayRefs,omitempty"`
+	GatewayRefs []v1beta1.ParentReference `json:"gatewayRefs,omitempty"`
 
 	// Hosts attached to the generated Istio virtual service or Gateway API HTTPRoute.
 	// Defaults to the service name
@@ -266,6 +266,20 @@ type CanaryAnalysis struct {
 	// A/B testing HTTP header match conditions
 	// +optional
 	Match []istiov1alpha3.HTTPMatchRequest `json:"match,omitempty"`
+
+	// SessionAffinity represents the session affinity settings for a canary run.
+	// +optional
+	SessionAffinity *SessionAffinity `json:"sessionAffinity,omitempty"`
+}
+
+type SessionAffinity struct {
+	// CookieName is the key that will be used for the session affinity cookie.
+	CookieName string `json:"cookieName,omitempty"`
+	// MaxAge indicates the number of seconds until the session affinity cookie will expire.
+	// ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#attributes
+	// The default value is 86,400 seconds, i.e. a day.
+	// +optional
+	MaxAge int `json:"maxAge,omitempty"`
 }
 
 // CanaryMetric holds the reference to metrics used for canary analysis
@@ -439,6 +453,15 @@ type AutoscalerRefernce struct {
 type CustomMetadata struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
+}
+
+// GetMaxAge returns the max age of a cookie in seconds.
+func (s *SessionAffinity) GetMaxAge() int {
+	if s.MaxAge == 0 {
+		// 24 hours * 60 mins * 60 seconds
+		return 86400
+	}
+	return s.MaxAge
 }
 
 // GetServiceNames returns the apex, primary and canary Kubernetes service names

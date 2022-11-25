@@ -1,10 +1,11 @@
  # flagger
 
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4783/badge)](https://bestpractices.coreinfrastructure.org/projects/4783)
-[![build](https://github.com/fluxcd/flagger/workflows/build/badge.svg)](https://github.com/fluxcd/flagger/actions)
-[![report](https://goreportcard.com/badge/github.com/fluxcd/flagger)](https://goreportcard.com/report/github.com/fluxcd/flagger)
-[![license](https://img.shields.io/github/license/fluxcd/flagger.svg)](https://github.com/fluxcd/flagger/blob/main/LICENSE)
 [![release](https://img.shields.io/github/release/fluxcd/flagger/all.svg)](https://github.com/fluxcd/flagger/releases)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4783/badge)](https://bestpractices.coreinfrastructure.org/projects/4783)
+[![report](https://goreportcard.com/badge/github.com/fluxcd/flagger)](https://goreportcard.com/report/github.com/fluxcd/flagger)
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B162%2Fgithub.com%2Ffluxcd%2Fflagger.svg?type=shield)](https://app.fossa.com/projects/custom%2B162%2Fgithub.com%2Ffluxcd%2Fflagger?ref=badge_shield)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/flagger)](https://artifacthub.io/packages/search?repo=flagger)
+[![CLOMonitor](https://img.shields.io/endpoint?url=https://clomonitor.io/api/projects/cncf/flagger/badge)](https://clomonitor.io/projects/cncf/flagger)
 
 Flagger is a progressive delivery tool that automates the release process for applications running on Kubernetes. 
 It reduces the risk of introducing a new software version in production
@@ -20,35 +21,36 @@ and part of the [Flux](https://fluxcd.io) family of GitOps tools.
 
 ### Documentation
 
-Flagger documentation can be found at [docs.flagger.app](https://docs.flagger.app).
+Flagger documentation can be found at [fluxcd.io/flagger](https://fluxcd.io/flagger/).
 
 * Install
-  * [Flagger install on Kubernetes](https://docs.flagger.app/install/flagger-install-on-kubernetes)
+  * [Flagger install on Kubernetes](https://fluxcd.io/flagger/install/flagger-install-on-kubernetes)
 * Usage
-  * [How it works](https://docs.flagger.app/usage/how-it-works)
-  * [Deployment strategies](https://docs.flagger.app/usage/deployment-strategies)
-  * [Metrics analysis](https://docs.flagger.app/usage/metrics)
-  * [Webhooks](https://docs.flagger.app/usage/webhooks)
-  * [Alerting](https://docs.flagger.app/usage/alerting)
-  * [Monitoring](https://docs.flagger.app/usage/monitoring)
+  * [How it works](https://fluxcd.io/flagger/usage/how-it-works)
+  * [Deployment strategies](https://fluxcd.io/flagger/usage/deployment-strategies)
+  * [Metrics analysis](https://fluxcd.io/flagger/usage/metrics)
+  * [Webhooks](https://fluxcd.io/flagger/usage/webhooks)
+  * [Alerting](https://fluxcd.io/flagger/usage/alerting)
+  * [Monitoring](https://fluxcd.io/flagger/usage/monitoring)
 * Tutorials
-  * [App Mesh](https://docs.flagger.app/tutorials/appmesh-progressive-delivery)
-  * [Istio](https://docs.flagger.app/tutorials/istio-progressive-delivery)
-  * [Linkerd](https://docs.flagger.app/tutorials/linkerd-progressive-delivery)
-  * [Open Service Mesh (OSM)](https://docs.flagger.app/tutorials/osm-progressive-delivery)
-  * [Kuma Service Mesh](https://docs.flagger.app/tutorials/kuma-progressive-delivery)
-  * [Contour](https://docs.flagger.app/tutorials/contour-progressive-delivery)
-  * [Gloo](https://docs.flagger.app/tutorials/gloo-progressive-delivery)
-  * [NGINX Ingress](https://docs.flagger.app/tutorials/nginx-progressive-delivery)
-  * [Skipper](https://docs.flagger.app/tutorials/skipper-progressive-delivery)
-  * [Traefik](https://docs.flagger.app/tutorials/traefik-progressive-delivery)
-  * [Kubernetes Blue/Green](https://docs.flagger.app/tutorials/kubernetes-blue-green)
+  * [App Mesh](https://fluxcd.io/flagger/tutorials/appmesh-progressive-delivery)
+  * [Istio](https://fluxcd.io/flagger/tutorials/istio-progressive-delivery)
+  * [Linkerd](https://fluxcd.io/flagger/tutorials/linkerd-progressive-delivery)
+  * [Open Service Mesh (OSM)](https://dfluxcd.io/flagger/tutorials/osm-progressive-delivery)
+  * [Kuma Service Mesh](https://fluxcd.io/flagger/tutorials/kuma-progressive-delivery)
+  * [Contour](https://fluxcd.io/flagger/tutorials/contour-progressive-delivery)
+  * [Gloo](https://fluxcd.io/flagger/tutorials/gloo-progressive-delivery)
+  * [NGINX Ingress](https://fluxcd.io/flagger/tutorials/nginx-progressive-delivery)
+  * [Skipper](https://fluxcd.io/flagger/tutorials/skipper-progressive-delivery)
+  * [Traefik](https://fluxcd.io/flagger/tutorials/traefik-progressive-delivery)
+  * [Kubernetes Blue/Green](https://fluxcd.io/flagger/tutorials/kubernetes-blue-green)
 
-### Who is using Flagger
+### Adopters
 
 **Our list of production users has moved to <https://fluxcd.io/adopters/#flagger>**.
 
-If you are using Flagger, please [submit a PR to add your organization](https://github.com/fluxcd/website/tree/main/adopters#readme) to the list!
+If you are using Flagger, please
+[submit a PR to add your organization](https://github.com/fluxcd/website/tree/main/adopters#readme) to the list!
 
 ### Canary CRD
 
@@ -175,7 +177,7 @@ spec:
           name: on-call-msteams
 ```
 
-For more details on how the canary analysis and promotion works please [read the docs](https://docs.flagger.app/usage/how-it-works).
+For more details on how the canary analysis and promotion works please [read the docs](https://fluxcd.io/flagger/usage/how-it-works).
 
 ### Features
 
@@ -232,15 +234,15 @@ can be used to implement the request success rate and request duration checks.
 
 #### [GitOps Toolkit](https://github.com/fluxcd/flux2) compatibility
 
-* Migrate Flagger to Kubernetes controller-runtime and [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder)
-* Make the Canary status compatible with [kstatus](https://github.com/kubernetes-sigs/cli-utils)
-* Make Flagger emit Kubernetes events compatible with Flux v2 notification API
-* Integrate Flagger into Flux v2 as the progressive delivery component
+- Migrate Flagger to Kubernetes controller-runtime and [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder)
+- Make the Canary status compatible with [kstatus](https://github.com/kubernetes-sigs/cli-utils)
+- Make Flagger emit Kubernetes events compatible with Flux v2 notification API
+- Integrate Flagger into Flux v2 as the progressive delivery component
 
 #### Integrations
 
-* Add support for ingress controllers like HAProxy, ALB, and Apache APISIX
-* Add support for Knative Serving
+- Add support for ingress controllers like HAProxy, ALB, and Apache APISIX
+- Add support for Knative Serving
 
 ### Contributing
 
@@ -249,20 +251,29 @@ To start contributing please read the [development guide](https://docs.flagger.a
 
 When submitting bug reports please include as many details as possible:
 
-* which Flagger version
-* which Kubernetes version
-* what configuration (canary, ingress and workloads definitions)
-* what happened (Flagger and Proxy logs)
+- which Flagger version
+- which Kubernetes version
+- what configuration (canary, ingress and workloads definitions)
+- what happened (Flagger and Proxy logs)
 
-### Getting Help
+### Communication
 
-If you have any questions about Flagger and progressive delivery:
+Here is a list of good entry points into our community, how we stay in touch and how you can meet us as a team.
 
-* Read the Flagger [docs](https://docs.flagger.app).
-* Invite yourself to the [CNCF community slack](https://slack.cncf.io/)
-  and join the [#flagger](https://cloud-native.slack.com/messages/flagger/) channel.
-* Check out the **[Flux events calendar](https://fluxcd.io/#calendar)**, both with upcoming talks, events, and meetings you can attend.
-* Or view the **[Flux resources section](https://fluxcd.io/resources)** with past events videos you can watch.
-* File an [issue](https://github.com/fluxcd/flagger/issues/new).
+- Slack: Join in and talk to us in the `#flagger` channel on [CNCF Slack](https://slack.cncf.io/).
+- Public meetings: We run weekly meetings - join one of the upcoming dev meetings from the [Flux calendar](https://fluxcd.io/#calendar).
+- Blog: Stay up to date with the latest news on [the Flux blog](https://fluxcd.io/blog/).
+- Mailing list: To be updated on Flux and Flagger progress regularly, please [join the flux-dev mailing list](https://lists.cncf.io/g/cncf-flux-dev).
 
-Your feedback is always welcome!
+#### Subscribing to the flux-dev calendar
+
+To add the meetings to your e.g. Google calendar
+
+1. visit the [Flux calendar](https://lists.cncf.io/g/cncf-flux-dev/calendar)
+2. click on "Subscribe to Calendar" at the very bottom of the page
+3. copy the iCalendar URL
+4. open e.g. your Google calendar
+5. find the "add calendar" option
+6. choose "add by URL"
+7. paste iCalendar URL (ends with `.ics`)
+8. done

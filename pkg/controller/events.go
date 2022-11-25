@@ -73,8 +73,18 @@ func (c *Controller) sendEventToWebhook(r *flaggerv1.Canary, eventType, template
 
 func (c *Controller) alert(canary *flaggerv1.Canary, message string, metadata bool, severity flaggerv1.AlertSeverity) {
 	var fields []notifier.Field
+
+	if c.clusterName != "" {
+		fields = append(fields,
+			notifier.Field{
+				Name:  "Cluster",
+				Value: c.clusterName,
+			},
+		)
+	}
+
 	if metadata {
-		fields = alertMetadata(canary, c.clusterName)
+		fields = append(fields, alertMetadata(canary)...)
 	}
 
 	// send alert with the global notifier
@@ -123,6 +133,10 @@ func (c *Controller) alert(canary *flaggerv1.Canary, message string, metadata bo
 		// set hook URL address
 		url := provider.Spec.Address
 
+		// set the token which will be sent in the header
+		// https://datatracker.ietf.org/doc/html/rfc6750
+		token := ""
+
 		// extract address from secret
 		if provider.Spec.SecretRef != nil {
 			secret, err := c.kubeClient.CoreV1().Secrets(providerNamespace).Get(context.TODO(), provider.Spec.SecretRef.Name, metav1.GetOptions{})
@@ -137,6 +151,10 @@ func (c *Controller) alert(canary *flaggerv1.Canary, message string, metadata bo
 				c.logger.With("canary", fmt.Sprintf("%s.%s", canary.Name, canary.Namespace)).
 					Errorf("alert provider %s.%s secret does not contain an address", alert.ProviderRef.Name, providerNamespace)
 				continue
+			}
+
+			if tokenFromSecret, ok := secret.Data["token"]; ok {
+				token = string(tokenFromSecret)
 			}
 		}
 
@@ -155,7 +173,7 @@ func (c *Controller) alert(canary *flaggerv1.Canary, message string, metadata bo
 		}
 
 		// create notifier based on provider type
-		f := notifier.NewFactory(url, proxy, username, channel)
+		f := notifier.NewFactory(url, token, proxy, username, channel)
 		n, err := f.Notifier(provider.Spec.Type)
 		if err != nil {
 			c.logger.With("canary", fmt.Sprintf("%s.%s", canary.Name, canary.Namespace)).
@@ -173,17 +191,8 @@ func (c *Controller) alert(canary *flaggerv1.Canary, message string, metadata bo
 	}
 }
 
-func alertMetadata(canary *flaggerv1.Canary, cluster string) []notifier.Field {
+func alertMetadata(canary *flaggerv1.Canary) []notifier.Field {
 	var fields []notifier.Field
-
-	if cluster != "" {
-		fields = append(fields,
-			notifier.Field{
-				Name:  "Cluster",
-				Value: cluster,
-			},
-		)
-	}
 
 	fields = append(fields,
 		notifier.Field{

@@ -10,25 +10,25 @@ on:
       - main
 
 permissions:
-  contents: read # for actions/checkout to fetch code
+  contents: read
 
 jobs:
-  container:
+  build-flagger:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Restore Go cache
-        uses: actions/cache@v1
+        uses: actions/cache@v3.0.11
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Setup Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.18.x
+          go-version: 1.19.x
       - name: Download modules
         run: |
           go mod download
@@ -47,7 +47,7 @@ jobs:
             exit 1
           fi
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
           file: ./coverage.txt
       - name: Build container image
